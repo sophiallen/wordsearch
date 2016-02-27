@@ -1,7 +1,7 @@
 from random import randint
 
 
-def mapLetter(num):
+def mapLetters():
     #dict that tracks letter frequency
     ltrFreqs = {'a':8,'b':2,'c':3,'d':4,'e':13,'f':2,'g':2,'h':6,'i':7,'j':1,'k':1,'l':4,'m':2,'n':6,'o':7,'p':2,'q':1,'r':6,'s':6,'t':9,'u':3,'v':1,'x':1,'y':2,'z':1}
     #dict to map numbers to letters, according to frequency. 
@@ -11,16 +11,17 @@ def mapLetter(num):
         for i in range(ltrFreqs[key]):
             maps[count] = key
             count += 1
-    return maps[num]
+    return maps
 
 def initMatrix(n):
     '''creates n arrays of n random letters'''
     matrix = []
+    letters = mapLetters()
     for i in range(n):
         L = []
         for i in range(n):
             num = randint(1,100)
-            ltr = mapLetter(num)
+            ltr = letters[num]
             L.append(ltr)
         matrix.append(L)
     return matrix
