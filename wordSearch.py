@@ -3,7 +3,7 @@ from random import randint
 
 def mapLetters():
     #dict that tracks letter frequency
-    ltrFreqs = {'a':8,'b':2,'c':3,'d':4,'e':13,'f':2,'g':2,'h':6,'i':7,'j':1,'k':1,'l':4,'m':2,'n':6,'o':7,'p':2,'q':1,'r':6,'s':6,'t':9,'u':3,'v':1,'x':1,'y':2,'z':1}
+    ltrFreqs = {'a':8,'b':2,'c':3,'d':4,'e':13,'f':2,'g':3,'h':6,'i':7,'j':1,'k':1,'l':4,'m':2,'n':6,'o':6,'p':2,'q':1,'r':6,'s':6,'t':9,'u':3,'v':1,'x':1,'y':2,'z':1}
     #dict to map numbers to letters, according to frequency. 
     maps = {}
     count = 1
@@ -80,12 +80,68 @@ def diagSearch(dictionary, matrix, n):
                     wordsFound.append(word)
                 wordlen += 1
     return wordsFound
+
+def miniDg(matrix, row, ndx, Dict):
+    n = len(matrix)
+    found = []
+    wordlen = 1
+    word = matrix[row][ndx]
+    while wordlen + ndx < n and wordlen + row < n:
+        word += matrix[row+wordlen][ndx+wordlen]
+        wordlen += 1
+        if word in Dict:
+            found.append(word)
+    return found
         
+
+def miniHz(row, ndx, Dict):
+    word = row[ndx]
+    found = []
+    while ndx + 1 < len(row):
+        ndx += 1
+        word += row[ndx]
+        if word in Dict:
+            found.append(word)
+    return found
+
+def miniVt(matrix, rownum, ndx, Dict):
+    word = matrix[rownum][ndx]
+    found = []
+    lng = len(matrix) - rownum
+    while rownum + 1 < lng:
+        rownum += 1
+        word += matrix[rownum][ndx]
+        if word in Dict:
+            found.append(word)
+    return found
+        
+def miniSearch(n):
+    matrix = initMatrix(n)
+    Dict = initDict()
+    wordsFound = []
+    for r in range(n): 
+        for i in range(n):
+            wordsFound += miniHz(matrix[r], i, Dict)
+            wordsFound += miniVt(matrix, r, i, Dict)
+            wordsFound += miniDg(matrix, r, i, Dict)
+    return len(wordsFound)
+
+def avgWordsFound(strt, upto, times):
+    sums = {}
+    for i in range(strt, upto+1):
+        for p in range(times):
+            numFound = miniSearch(i)
+            if i in sums:
+                sums[i] += numFound
+            else:
+                sums[i] = numFound
+    for key in sums:
+        sums[key] /= times
+    print(sums)              
 
 def wordSearch(n):
     matrix = initMatrix(n)
     dictionary = initDict()
-    print(matrix)
     wordsFound = []
     wordsFound += vtSearch(dictionary, matrix, n)
     wordsFound += hzSearch(dictionary, matrix, n)
