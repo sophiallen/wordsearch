@@ -26,14 +26,27 @@ def initMatrix(n):
         matrix.append(L)
     return matrix
 
-def initDict():
+def initDict(dictFile):
     '''loads American English scrabble word list I downloaded from http://www.puzzlers.org/pub/wordlists/ospd.txt'''
     d = {}  #hash table for constant time lookup.
-    infile = open('scrabbledict.txt','r')
+    infile = open(dictFile,'r')
     for line in infile:
             d[line[:-1]] = 0  #store in dictionary
     infile.close()
     return d
+
+def loadMatrix(filename):
+    infile = open(filename, 'r')
+    matrix = []
+    for line in infile:
+        row = []
+        L = line[:-1]
+        lnth = len(row)
+        for ltr in L:
+            row.append(ltr)
+        matrix.append(row)
+    infile.close()
+    return matrix
 
 def buildWord(L):
     word = ''
@@ -81,56 +94,86 @@ def diagSearch(dictionary, matrix, n):
                 wordlen += 1
     return wordsFound
 
-def miniDg(matrix, row, ndx, Dict):
-    n = len(matrix)
+def miniDg(matrix, row, ndx):
+    rows = len(matrix)
+    columns = len(matrix[0])
     found = []
     wordlen = 1
     word = matrix[row][ndx]
-    while wordlen + ndx < n and wordlen + row < n:
-        word += matrix[row+wordlen][ndx+wordlen]
+    while wordlen + ndx < columns and wordlen + row < rows:
+        newrow = wordlen + row
+        newndx = wordlen + ndx
+        word += matrix[newrow][newndx]
         wordlen += 1
-        if word in Dict:
-            found.append(word)
+        found.append(word)
     return found
         
 
-def miniHz(row, ndx, Dict):
-    word = row[ndx]
+def miniHz(matrix, row, ndx):
+    word = matrix[row][ndx]
     found = []
-    while ndx + 1 < len(row):
+    while ndx + 1 < len(matrix[row]):
         ndx += 1
-        word += row[ndx]
-        if word in Dict:
-            found.append(word)
+        word += matrix[row][ndx]
+        found.append(word)
     return found
 
-def miniVt(matrix, rownum, ndx, Dict):
+def miniVt(matrix, rownum, ndx):
     word = matrix[rownum][ndx]
     found = []
     lng = len(matrix) - rownum
-    while rownum + 1 < lng:
-        rownum += 1
-        word += matrix[rownum][ndx]
-        if word in Dict:
-            found.append(word)
+    for i in range(1,lng):
+        word += matrix[rownum+i][ndx]
+        found.append(word)
     return found
         
-def miniSearch(n):
-    matrix = initMatrix(n)
-    Dict = initDict()
+def wordSearchFromFile(dictionary, matrix):
+    matrix = loadMatrix(matrix)
+    Dict = initDict(dictionary)
+    allFound = []
     wordsFound = []
-    for r in range(n): 
-        for i in range(n):
-            wordsFound += miniHz(matrix[r], i, Dict)
-            wordsFound += miniVt(matrix, r, i, Dict)
-            wordsFound += miniDg(matrix, r, i, Dict)
+    h = len(matrix)
+    w = len(matrix[0])
+    longest = ""
+    for r in range(h): 
+        for i in range(w):
+            allFound += miniHz(matrix, r, i)
+            allFound += miniVt(matrix, r, i)
+            allFound += miniDg(matrix, r, i)
+    for word in allFound:
+        if word in Dict and word not in wordsFound:
+            wordsFound.append(word)
+            if len(word) > len(longest):
+                longest = word
+    print('longest word:', longest)
+    print('words found:', len(wordsFound))
+    return wordsFound
+
+def autoWordSearch(n):
+    matrix = initMatrix(n)
+    Dict = initDict('ScrabbleDict.txt')
+    allFound = []
+    wordsFound = []
+    h = len(matrix)
+    w = len(matrix[0])
+    longest = ""
+    for r in range(h): 
+        for i in range(w):
+            allFound += miniHz(matrix, r, i)
+            allFound += miniVt(matrix, r, i)
+            allFound += miniDg(matrix, r, i)
+    for word in allFound:
+        if word in Dict and word not in wordsFound:
+            wordsFound.append(word)
+            if len(word) > len(longest):
+                longest = word
     return len(wordsFound)
 
 def avgWordsFound(strt, upto, times):
     sums = {}
     for i in range(strt, upto+1):
         for p in range(times):
-            numFound = miniSearch(i)
+            numFound = autoWordSearch(i)
             if i in sums:
                 sums[i] += numFound
             else:
