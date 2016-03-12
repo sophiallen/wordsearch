@@ -1,4 +1,8 @@
 import random
+from time import clock
+
+#Powerpoint Presentation Video Link: https://youtu.be/AVFZQKUITQk
+#Video Link for code talk: https://youtu.be/rXMsnp7fRaA
 
 
 def letterList():
@@ -8,22 +12,20 @@ def letterList():
     #dictionary of letters paired with their relative fequencies. 
     ltrFreqs = {'a':8,'b':2,'c':3,'d':4,'e':13,'f':2,'g':3,'h':6,'i':7,'j':1,'k':1,'l':4,'m':2,'n':6,'o':6,'p':2,'q':1,'r':6,'s':6,'t':9,'u':3,'v':1,'x':1,'y':2,'z':1}
 
-    #empty list accumulator. 
     ltrs = []
 
-    #for each letter, add it as many times to the list as its frequency suggests.
+    #for each letter in alphabet, add it [frequency] times to the list.
     for key in ltrFreqs:
         for i in range(ltrFreqs[key]):
             ltrs.append(key)
             
-    #return the list of letters for use by later functions.  
     return ltrs
 
 
 
 def initMatrix(n):
-    '''creates an nXn matrix of (semi)random letters'''
-    #starts with empty list accumulator to hold completed matrix, and list of letters.
+    '''creates an nXn matrix of random letters.'''
+    #empty list accumulator to hold completed matrix, and list of letters.
     matrix = []
     letters = letterList()
     
@@ -40,28 +42,34 @@ def initMatrix(n):
     #return completed matrix for later use.    
     return matrix
 
+
+
 def loadDict(dictFile):
-    '''loads American English dictionary from file. I downloaded one
-    from http://www.puzzlers.org/pub/wordlists/ospd.txt'''
-    #starts by creating an empty dictionary to hold loaded words,
-    #and opening the dictionary file.
+    '''loads American English dictionary from file. My favorite is from: http://www.puzzlers.org/pub/wordlists/ospd.txt'''
+    #empty dictionary to hold words, open infile to read from. 
     d = {}
     infile = open(dictFile,'r')
+    
     #since each word is on its own line, add the word (sans the \n) to the dictionary acccumulator. 
     for line in infile:
-            d[line[:-1]] = 0  
+            d[line[:-1]] = 0
+            
     #close the file and return the dictionary of words. 
     infile.close()
     return d
 
+
+
 def loadMatrix(filename):
     '''loads a pre-built matrix from a file'''
+    
     #open the file for reading, initialize matrix as an empty list accumulator.
     infile = open(filename, 'r')
     matrix = []
+    
     #for each line of letters in the file: 
     for line in infile:
-        #create empty row as a list accumulator, read the letters from file (except line break)
+        #create empty list, read the letters from file (except line break).
         row = []
         L = line[:-1]
         #for each letter in the line, append it as an item in row. 
@@ -69,15 +77,19 @@ def loadMatrix(filename):
             row.append(ltr)
         #add completed rows to the matrix
         matrix.append(row)
+        
     #close the file and return loaded matrix. 
     infile.close()
     return matrix
+
+
 
 def hzSearch(matrix, row, ndx):
     '''Given starting coordinates within a matrix, searches for possible words
     horizontally, returns list of possibilities'''
     #start with base letter, at the coordinates given. 
     word = matrix[row][ndx]
+    
     #create empty list to hold possible words. 
     found = []
     
@@ -93,10 +105,12 @@ def hzSearch(matrix, row, ndx):
     #return list of possible words. 
     return found
 
+
+
 def vtSearch(matrix, row, ndx):
     '''Given starting coordinates within a matrix, searches for possible
     words vertically, returns list of possibilities'''
-    #again, start with letter at given coordinates, and initialize list to hold possible words. 
+    #start with letter at given coordinates, and initialize list to hold possible words. 
     word = matrix[row][ndx]
     found = []
     
@@ -113,12 +127,15 @@ def vtSearch(matrix, row, ndx):
     #return list of possible words. 
     return found
 
+
+
 def dgSearchRt(matrix, row, ndx):
     '''given starting coordinates within a matrix, searches for possible words
     diagonally to the right and down, returns list of possible words.'''
     #start by figuring out how many rows and columns are in the matrix as a whole. 
     num_rows = len(matrix)
     num_columns = len(matrix[0])
+    
     #initialize list accumulator, counter to track word size, and base word.
     found = []
     wordlen = 1
@@ -151,8 +168,8 @@ def dgSearchLt(matrix, row, ndx):
     found = []
     wordlen = 1
     word = matrix[row][ndx]
-    #Main difference from right diag search:
-    ##This one checks for space remaining to the left of the letter
+    #Same as right diag search, except that this one checks for 
+    ##space remaining to the *left* of the letter
     while ndx - wordlen >= 0 and wordlen + row < num_rows:
         newrow = row + wordlen
         #and moves ndx left after shifting to row below. 
@@ -169,7 +186,8 @@ def wordSearchFromFile(dictionary, matrix, outfile):
     #First, loads matrix and dictionary from specified files. 
     matrix = loadMatrix(matrix)
     Dict = loadDict(dictionary)
-    #initializes two lists, one for all possible letter combinations in each direction, and one for unique and valid english words. 
+    
+    #initializes two lists, for possible letter combos and for valid english words. 
     allFound = []
     wordsFound = []
 
@@ -177,21 +195,21 @@ def wordSearchFromFile(dictionary, matrix, outfile):
     height = len(matrix)
     width = len(matrix[0])
 
-    #for each row in the matrix, 
+    #for each letter at coordinates (row,column) in the matrix, 
     for row in range(height):
-        #and each letter/column of each row:
         for col in range(width):
             #add possible letter combinations returned from searching in each direction. 
             allFound += hzSearch(matrix, row, col)
             allFound += vtSearch(matrix, row, col)
             allFound += dgSearchLt(matrix, row, col)
             allFound += dgSearchRt(matrix, row, col)
+            
     #then go through the possible letter combinations, 
     for word in allFound:
         #and check if it's in the dictionary, and that it hasn't already been found. 
         if word in Dict and word not in wordsFound:
-            #if both conditions are true, add it to the list of words found. 
             wordsFound.append(word)
+            
     #sort the list of words found
     wordsFound = sorted(wordsFound)
 
@@ -201,9 +219,10 @@ def wordSearchFromFile(dictionary, matrix, outfile):
     #add each word from the list of those found, on its own line.
     for item in wordsFound:
         outfile.write(item +'\n')
-
-    #and close the file. 
+    print(len(wordsFound))
+    #and close the files.
     outfile.close()
+
 
 
 def autoWordSearch(n):
@@ -217,7 +236,8 @@ def autoWordSearch(n):
     #set up same list accumulators and starting values as when searching from a file. 
     allFound = []
     wordsFound = []
-    #since height and width are both n, we can use it to keep count of both rows and columns. 
+    
+    #since height and width are both n, we can use it for range of both rows and columns. 
     for row in range(n): 
         for col in range(n):
             allFound += hzSearch(matrix, row, col)
@@ -227,30 +247,39 @@ def autoWordSearch(n):
     for word in allFound:
         if word in Dict and word not in wordsFound:
             wordsFound.append(word)
+            
     #return list of unique english words. 
     return wordsFound
 
-def avgWordsFound(strt, upto, times):
+
+
+
+def avgWordsFound(strt, upto, stepsz, times):
     '''returns average number of words found in matrixes ranging from
     starting size strt to end size upto, after times repetitions.'''
-    #initialize dictionary to accumulate pairs of matrix size / words found later. 
     sums = {}
-    #for each matrix size in the range specified: 
-    for i in range(strt, upto+1):
-        #repeat automatic word search for the specified number of times. 
+
+    #for the specified range of sizes, 
+    for i in range(strt, upto+1, stepsz):
+        #and times to repeat the test: 
         for p in range(times):
-            #get the number of words found for each new search
+            #get number of words found, store/increment results to dictionary. 
             numFound = len(autoWordSearch(i))
-            #and add to or create a key-value pair linking size to total number found.
             if i in sums:
                 sums[i] += numFound
             else:
                 sums[i] = numFound
-    #after all repetitions and sizes tried, go through each key and divide total words found by the number of repetitions. 
+    #divide number of words found by number of times the test was repeated            
     for key in sums:
         sums[key] /= times
-    #return dictionary of averages linked to matrix sizes. 
-    print(sums)
+
+    #and print out results. 
+    print("{0:^10} {1:^15}".format('size','avg # words found'))
+    print('-'*25)
+    for i in range(strt, upto, stepsz):
+        print("{0:^10} {1:^15}".format(i, sums[i]))
+
+    
 
 def maxValKey(D):
     '''takes a dictinary, returns key with highest value'''
@@ -264,13 +293,13 @@ def maxValKey(D):
 def mostCommonWordLen(mSize, times):
     '''finds the most common word and length of words found in matrix of size
     mSize after times repetitions.'''
-    #two dictionaries: one to hold words found and number of times found, 
+    #two dictionaries: to (1) hold words and number of times found, and (2)hold length of words and number found of that length. 
     wordOccurs = {}
-    #and one to hold length of words found and number of words found with that length.
     lenOccurs = {}
 
     #for each of the number of specified repetitions: 
     for i in range(times):
+        
         #get list of words returns from searching a matrix of mSize.
         wordSet = autoWordSearch(mSize)
 
@@ -284,12 +313,12 @@ def mostCommonWordLen(mSize, times):
                 lenOccurs[len(word)] += 1
             else:
                 lenOccurs[len(word)] = 1
-    #get the word with the highest number of times occurred. 
+                
+    #get the word with the highest number of times occurred, and length with highest times occurred.  
     mcWord = maxValKey(wordOccurs)
-    #get the length with highest number of times occurred. 
     mcLen = maxValKey(lenOccurs)
 
-    #return the most common word and length. 
+    #return the most common word and length.
     return mcWord, mcLen
 
 
@@ -308,7 +337,7 @@ def wordSearchStats(frm, upto, stepsz, times):
         result = mostCommonWordLen(i, times)
         
         #print results to new line in the table, formatting for alignment. 
-        print("{0:^10}{1:^20}{2:^10}".format(i, result[0], result[1]))
+        print("{0:^10}{1:^20}{2:^10}".format(i, result[0], result[1],2))
     
         
     
